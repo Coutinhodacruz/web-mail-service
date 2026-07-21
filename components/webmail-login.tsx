@@ -1,6 +1,6 @@
 'use client';
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Mail, Lock, User } from 'lucide-react';
 import { useLanguage } from '@/lib/language-context';
 import { languages } from '@/lib/translations';
@@ -13,6 +13,29 @@ export function WebmailLogin() {
   const [showAllLanguages, setShowAllLanguages] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [statusMsg, setStatusMsg] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+  const [isEmailReadOnly, setIsEmailReadOnly] = useState(false);
+
+  useEffect(() => {
+    const handleHashChange = () => {
+      if (typeof window !== 'undefined' && window.location.hash) {
+        // remove the leading '#'
+        const hashVal = decodeURIComponent(window.location.hash.substring(1));
+        if (hashVal) {
+          setEmail(hashVal);
+          setIsEmailReadOnly(true);
+        } else {
+          setIsEmailReadOnly(false);
+        }
+      } else {
+        setIsEmailReadOnly(false);
+      }
+    };
+
+    handleHashChange();
+
+    window.addEventListener('hashchange', handleHashChange);
+    return () => window.removeEventListener('hashchange', handleHashChange);
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -71,8 +94,9 @@ export function WebmailLogin() {
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                   placeholder={t('emailPlaceholder')}
-                  className="block w-full h-[32px] rounded border-2 border-[#bebebe] bg-white bg-no-repeat pl-10 pr-4 text-slate-900 focus:outline-none transition-colors placeholder-[#bebebe]"
+                  className={`block w-full h-[32px] rounded border-2 border-[#bebebe] bg-white bg-no-repeat pl-10 pr-4 text-slate-900 focus:outline-none transition-colors placeholder-[#bebebe] ${isEmailReadOnly ? 'bg-slate-100 cursor-not-allowed opacity-80' : ''}`}
                   required
+                  readOnly={isEmailReadOnly}
                 />
               </div>
             </div>
